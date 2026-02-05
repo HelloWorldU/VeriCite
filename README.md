@@ -90,8 +90,8 @@ graph TD
     C -->|"Cloud (Pro)"| E["DeepSeek/GLM API"];
     D --> F[Text Extraction];
     E --> F;
-    F --> G[Validator (Crossref)];
-    G --> H[Rich Terminal UI];
+    F --> G["Validator (Crossref)"];
+    G --> H["Rich Terminal UI"];
 ```
 
 ---
