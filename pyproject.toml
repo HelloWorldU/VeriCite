@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "vericite"
+version = "0.1.0"
+description = "VeriCite: Next-Gen Academic Integrity Linter"
+authors = ["VeriCite Team"]
+readme = "README.md"
+packages = [{include = "vericite"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+typer = {extras = ["all"], version = "^0.9.0"}
+pymupdf = "^1.23.0"
+rich = "^13.0.0"
+requests = "^2.31.0"
+rapidfuzz = "^3.0.0"
+# paddlepaddle and paddleocr can be heavy, adding them but might need careful installation in some envs
+# paddlepaddle = "^2.6.0" 
+# paddleocr = "^2.7.0"
+
+[tool.poetry.scripts]
+vericite = "vericite.cli:app"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
