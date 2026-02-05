@@ -86,8 +86,8 @@ vericite --help
 graph TD
     A[Input PDF] --> B{Slicer};
     B -->|Found Refs| C{Engine Router};
-    C -->|Local (Default)| D[PaddleOCR-VL];
-    C -->|Cloud (Pro)| E[DeepSeek/GLM API];
+    C -->|"Local (Default)"| D[PaddleOCR-VL];
+    C -->|"Cloud (Pro)"| E["DeepSeek/GLM API"];
     D --> F[Text Extraction];
     E --> F;
     F --> G[Validator (Crossref)];
