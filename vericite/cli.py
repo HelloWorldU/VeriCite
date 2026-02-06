@@ -1,7 +1,6 @@
 import typer
 import sys
 import os
-from typing_extensions import Annotated
 from vericite.core.slicer import smart_slice
 from vericite.core.ocr.local import LocalEngine
 from vericite.core.ocr.cloud import CloudEngine
@@ -10,13 +9,21 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
-app = typer.Typer(help="VeriCite: Academic Citation Integrity Checker")
+# Disable pretty exceptions to avoid the crash in error handling
+app = typer.Typer(help="VeriCite: Academic Citation Integrity Checker", pretty_exceptions_enable=False)
 console = Console()
+
+@app.callback()
+def callback():
+    """
+    VeriCite: Academic Citation Integrity Checker
+    """
+    pass
 
 @app.command()
 def scan(
     pdf_path: str = typer.Argument(..., help="Path to the PDF file to check"),
-    engine: Annotated[str, typer.Option(help="OCR Engine: local or cloud")] = "local"
+    engine: str = typer.Option("local", help="OCR Engine: local or cloud")
 ):
     """
     Scan a PDF for fake citations using Local (PaddleOCR) or Cloud (DeepSeek/GLM) engines.
