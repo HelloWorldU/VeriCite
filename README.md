@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
-VeriCite 是一个智能化的学术引用校验工具。它致力于解决**AI 幻觉引用**和**虚假引用凑数**两大痛点。
+VeriCite 是一个智能化的学术引用校验工具。它致力于解决**AI 幻觉引用**和**论文虚假引用**两大痛点。
 
 我们的核心理念是**"文本优先，视觉兜底" (Text First, Visual Fallback)**。对于绝大多数原生电子版论文（Digital Born），我们直接提取文本层进行毫秒级验证；只有在处理老旧扫描件或极端复杂排版时，才自动降级使用 OCR 技术。
 

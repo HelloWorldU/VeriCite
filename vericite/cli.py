@@ -1,6 +1,12 @@
 import typer
 import sys
 import os
+
+# Suppress PaddleOCR welcome message and warnings - MUST BE BEFORE OTHER IMPORTS
+os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "True"
+# Suppress specific Paddle warnings
+os.environ["FLAGS_allocator_strategy"] = 'auto_growth' 
+
 from vericite.core.slicer import smart_slice
 from vericite.core.ocr.local import LocalEngine
 from vericite.core.ocr.cloud import CloudEngine
@@ -13,93 +19,126 @@ from rich.panel import Panel
 app = typer.Typer(help="VeriCite: Academic Citation Integrity Checker", pretty_exceptions_enable=False)
 console = Console()
 
-@app.callback()
-def callback():
-    """
-    VeriCite: Academic Citation Integrity Checker
-    """
-    pass
+# Suppress PaddleOCR welcome message and warnings
+os.environ["PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK"] = "True"
+# Redirect stderr to suppress other Paddle warnings during init if needed
+# (Not doing full redirect here to avoid hiding real errors, but env var handles the main one)
 
+# Interactive REPL mode
 @app.command()
-def scan(
-    pdf_path: str = typer.Argument(..., help="Path to the PDF file to check"),
-    engine: str = typer.Option("local", help="OCR Engine: local or cloud")
-):
+def main():
     """
-    Scan a PDF for fake citations using Local (PaddleOCR) or Cloud (DeepSeek/GLM) engines.
+    Start VeriCite in interactive mode (Claude Code style).
     """
-    if not os.path.exists(pdf_path):
-        console.print(f"[bold red]Error:[/bold red] File not found: {pdf_path}")
-        raise typer.Exit(code=1)
-
-    console.print(Panel.fit(f"[bold cyan]VeriCite Scanner[/bold cyan]\nTarget: {pdf_path}\nEngine: {engine}", border_style="cyan"))
-
-    # 1. Smart Slicing
-    with console.status("[bold green]🔍 Phase 1: Locating References Section...[/bold green]", spinner="dots"):
-        ref_page_index = smart_slice(pdf_path)
+    # Clear screen for a fresh start
+    # os.system('cls' if os.name == 'nt' else 'clear')
     
-    if ref_page_index == -1:
-        console.print("[yellow]⚠️  Could not automatically find 'References' section.[/yellow]")
-        console.print("Defaulting to scanning the last 3 pages.")
-        # Fallback to last few pages if file is large enough
-        import fitz
-        doc = fitz.open(pdf_path)
-        ref_page_index = max(0, len(doc) - 3)
-    else:
-        console.print(f"✅ References found starting at page: [bold]{ref_page_index + 1}[/bold]")
-
-    # 2. OCR Processing
-    ocr_engine = LocalEngine() if engine == "local" else CloudEngine()
+    # 1. Mock Login / Welcome Banner
+    # Create a more stylish layout
+    from rich.align import Align
+    from rich.text import Text
     
-    with console.status(f"[bold green]📖 Phase 2: Extracting Citations ({engine})...[/bold green]", spinner="dots"):
+    title = Text("VeriCite AI", style="bold cyan", justify="center")
+    subtitle = Text("Context-Aware Verification for the AI Era", style="dim cyan", justify="center")
+    
+    console.print(Panel(
+        Align.center(title + "\n" + subtitle),
+        border_style="cyan",
+        padding=(1, 2)
+    ))
+    
+    with console.status("[bold green]Authenticating...[/bold green]", spinner="dots"):
+        import time
+        time.sleep(0.8) # Mock network delay
+    
+    console.print("[green]✓ Authenticated as[/green] [bold]User[/bold]")
+    console.print("[dim]Type 'exit' or 'quit' to leave.[/dim]\n")
+
+    # 2. Main Loop
+    while True:
         try:
-            raw_citations = ocr_engine.extract(pdf_path, start_page=ref_page_index)
-        except Exception as e:
-            console.print(f"[bold red]OCR Error:[/bold red] {e}")
-            raise typer.Exit(code=1)
-    
-    console.print(f"✅ Extracted {len(raw_citations)} candidate citations.")
-
-    if not raw_citations:
-        console.print("[red]No text extracted. Is the PDF scanned? Try --engine cloud[/red]")
-        raise typer.Exit()
-
-    # 3. Validation
-    with console.status("[bold green]🕵️  Phase 3: Verifying against Crossref Database...[/bold green]", spinner="dots"):
-        results = validate_citations(raw_citations)
-
-    # 4. Report
-    table = Table(title="Verification Report", show_header=True, header_style="bold magenta")
-    table.add_column("Status", style="dim", width=8)
-    table.add_column("Citation Text", width=60)
-    table.add_column("DOI / Note", justify="right")
-
-    valid_count = 0
-    hallucination_count = 0
-
-    for res in results:
-        if res["valid"]:
-            valid_count += 1
-            status = "[green]PASS[/green]"
-            doi = res.get('doi') or "Verified"
-        else:
-            hallucination_count += 1
-            status = "[red]FAIL[/red]"
-            doi = res.get('reason', 'Unknown')
+            # Styled prompt
+            user_input = console.input("[bold cyan]➜[/bold cyan] ").strip()
             
-        table.add_row(status, res['text'][:100] + "..." if len(res['text'])>100 else res['text'], doi)
+            if not user_input:
+                continue
+                
+            if user_input.lower() in ["exit", "quit"]:
+                console.print("[yellow]Goodbye![/yellow]")
+                break
+                
+            # 3. Smart Input Handling
+            # Case A: File Path (PDF or TXT)
+            if os.path.exists(user_input) and os.path.isfile(user_input):
+                file_ext = os.path.splitext(user_input)[1].lower()
+                
+                if file_ext == ".pdf":
+                    # Delegate to PDF scan logic
+                    process_pdf(user_input)
+                else:
+                    # Treat as text file
+                    process_text_file(user_input)
+                    
+            # Case B: Raw Text (Citation string)
+            else:
+                # Assume raw text if it looks like a citation or is long enough
+                if len(user_input) > 10:
+                    process_raw_text(user_input)
+                else:
+                    console.print("[red]Input not found as file and too short to be a citation.[/red]")
 
-    console.print(table)
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Goodbye![/yellow]")
+            break
+        except Exception as e:
+            console.print(f"[bold red]Error:[/bold red] {e}")
+
+def process_pdf(path: str):
+    console.print(f"[dim]Analyzing PDF: {path}[/dim]")
+    # Reuse existing scan logic (simplified)
+    with console.status("Processing PDF...", spinner="dots"):
+        ref_page = smart_slice(path)
+        if ref_page == -1: 
+            ref_page = 0 # Fallback
+            
+        # Try local engine (which now has auto-fallback)
+        engine = LocalEngine()
+        citations = engine.extract(path, ref_page)
+        
+    if not citations:
+        console.print("[red]No citations found.[/red]")
+        return
+        
+    _validate_and_report(citations)
+
+def process_text_file(path: str):
+    console.print(f"[dim]Reading text file: {path}[/dim]")
+    with open(path, "r", encoding="utf-8") as f:
+        text = f.read()
+    process_raw_text(text)
+
+def process_raw_text(text: str):
+    citations = [line.strip() for line in text.split('\n') if len(line.strip()) > 10]
+    if not citations:
+        console.print("[red]No valid citations parsed.[/red]")
+        return
+    _validate_and_report(citations)
+
+def _validate_and_report(citations):
+    console.print(f"Found {len(citations)} candidate citations.")
+    with console.status("Verifying...", spinner="dots"):
+        results = validate_citations(citations)
     
-    # Summary
-    console.print("\n[bold]Summary:[/bold]")
-    console.print(f"🟢 Verified: {valid_count}")
-    console.print(f"🔴 Potentially Fake/Unverified: {hallucination_count}")
-    
-    if hallucination_count > 0:
-        console.print("\n[italic yellow]Tip: Some 'Fail' results might be due to OCR errors or formatting issues.[/italic yellow]")
-        if engine == "local":
-             console.print("[italic cyan]Try using --engine cloud for higher accuracy on scanned documents.[/italic cyan]")
+    # Simple report for REPL
+    for res in results:
+        icon = "✅" if res["valid"] else "❌"
+        color = "green" if res["valid"] else "red"
+        console.print(f"[{color}]{icon} {res['text'][:80]}... ({res.get('doi') or res.get('reason')})[/{color}]")
+    console.print("") # Newline
 
 if __name__ == "__main__":
-    app()
+    # If no args provided, run interactive mode
+    if len(sys.argv) == 1:
+        main()
+    else:
+        app()

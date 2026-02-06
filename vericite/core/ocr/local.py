@@ -53,14 +53,16 @@ class LocalEngine(OCREngine):
             
             # --- Strategy 1: Direct Text Extraction ---
             text = page.get_text()
-            # Simple heuristic: If page has > 50 chars, assume it's a digital PDF
-            # (References usually have a lot of text)
-            if len(text.strip()) > 50:
+            
+            # IMPROVED LOGIC: Check for meaningful content, not just length
+            # If we extracted anything that looks like alphanumeric text, use it.
+            # Only fallback to OCR if text is practically empty or whitespace.
+            if text and len(text.strip()) > 5:  # Lower threshold to 5 chars to catch single short citations
                 # Naive splitting by newline. 
                 # TODO: Implement better citation splitting logic (e.g. looking for [1], [2])
                 lines = text.split('\n')
-                # Filter out short lines (page numbers, headers)
-                page_citations = [l.strip() for l in lines if len(l.strip()) > 20]
+                # Filter out extremely short lines (page numbers) but keep potential short citations
+                page_citations = [l.strip() for l in lines if len(l.strip()) > 10]
                 citations.extend(page_citations)
                 continue
             

@@ -1,0 +1,4 @@
+Vaswani, A., et al. (2017). Attention is all you need. Advances in neural information processing systems, 30.
+Smith, J. D., & Johnson, T. (2025). Quantum Entanglement in Large Language Models. Journal of Artificial General Intelligence, 12(4), 112-145.
+He, K., et al. (2016). Deep residual learning for image recognition. CVPR.
+LeCun, Y., & Hinton, G. (2023). The End of Backpropagation: A New Era. Nature Machine Intelligence, 5, 20-30.
